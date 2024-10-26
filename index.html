@@ -118,7 +118,7 @@
                   source.connect(analyser);
 
                   function getDecibels() {
-                    analyser.getByteTimeDomainData(dataArray);
+                    analyser.getByteFrecuencyData(dataArray);
 
                     let sum = 0;
 for (let i = 0; i < dataArray.length; i++) {
