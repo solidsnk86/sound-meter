@@ -118,15 +118,15 @@
                   source.connect(analyser);
 
                   function getDecibels() {
-                    analyser.getByteFrequencyData(dataArray);
+                    analyser.getByteTimeDomainData(dataArray);
 
                     let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) {
-                      sum += dataArray[i];
-                    }
-                    const amplitude = sum / dataArray.length;
-                    const decibels = 20 * Math.log10(amplitude || 1);
-
+for (let i = 0; i < dataArray.length; i++) {
+  const value = dataArray[i] / 128 - 1; // Normalizar entre -1 y 1
+  sum += value * value;
+}
+const rms = Math.sqrt(sum / dataArray.length);
+const decibels = 20 * Math.log10(rms || 0.0001); // Evitar log(0)
                     // Actualizar el medidor
                     updateGauge(decibels);
 
