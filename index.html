@@ -122,7 +122,7 @@
 
                     let sum = 0;
 for (let i = 0; i < dataArray.length; i++) {
-  const value = dataArray[i] / 128 - 1; // Normalizar entre -1 y 1
+  const value = dataArray[i]; // Normalizar entre -1 y 1
   sum += value * value;
 }
 const rms = Math.sqrt(sum / dataArray.length);
