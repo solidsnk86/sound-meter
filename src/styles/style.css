@@ -72,18 +72,20 @@ body {
   font-size: 18px;
 }
 
-#start-button {
+#start-button,
+#stop-button {
   display: flex;
   justify-content: center;
   padding: 6px 10px;
-  margin: 0 auto;
+  margin: 4px auto;
   border: none;
   border: 1px solid #2a2a2a;
   border-radius: 6px;
   cursor: pointer;
 }
 
-#start-button:hover {
+#start-button:hover,
+#stop-button:hover {
   opacity: 0.8;
 }
 
@@ -114,7 +116,7 @@ body {
 }
 
 footer {
-  padding-top: 25px;
+  padding-top: 45px;
 }
 
 footer a {
