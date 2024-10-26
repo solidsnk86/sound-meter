@@ -202,11 +202,49 @@
       `;
             }
           });
+
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById("startRecord").onclick = async () => {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          mediaRecorder = new MediaRecorder(stream);
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+            const formData = new FormData();
+            formData.append("audio", audioBlob, "nuevo_audio.webm");
+
+            await fetch("http://localhost:3000/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            audioChunks = [];
+          };
+
+          mediaRecorder.start();
+          document.getElementById("stopRecord").disabled = false;
+        };
+
+        document.getElementById("stopRecord").onclick = () => {
+          mediaRecorder.stop();
+          document.getElementById("stopRecord").disabled = true;
+        };
       });
       document.getElementById("stop-button").addEventListener("click", () => {
         location.reload();
       });
     </script>
+    <!-- <button id="startRecord">Iniciar grabación</button>
+    <button id="stopRecord" disabled>Detener grabación</button> -->
+    <div id="info"></div>
     <footer>
       <a href="https://github.com/solidsnk86">Hecho con 💖 por SolidSnk86</a>
     </footer>
