@@ -122,7 +122,7 @@
 
                     let sum = 0;
                     for (let i = 0; i < dataArray.length; i++) {
-                      sum += dataArray[i] / 128 - 1;
+                      sum += dataArray[i];
                     }
                     const amplitude = sum / dataArray.length;
                     const decibels = 20 * Math.log10(amplitude || 1);
