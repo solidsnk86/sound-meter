@@ -72,6 +72,21 @@ body {
   font-size: 18px;
 }
 
+#start-button {
+  display: flex;
+  justify-content: center;
+  padding: 6px 10px;
+  margin: 0 auto;
+  border: none;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#start-button:hover {
+  opacity: 0.8;
+}
+
 .chart-container {
   background: #2a2a2a;
   border-radius: 10px;

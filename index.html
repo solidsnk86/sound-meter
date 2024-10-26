@@ -22,6 +22,7 @@
           </div>
         </div>
         <div class="status">Nivel de ruido: Normal</div>
+        <button id="start-button">Iniciar Medidor de Sonido</button>
       </div>
 
       <div class="chart-container">
@@ -49,153 +50,157 @@
     </div>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const ctx = document.querySelector("canvas").getContext("2d");
-        const soundChart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: Array(50).fill(""),
-            datasets: [
-              {
-                label: "Nivel de Sonido (dB)",
-                data: Array(50).fill(0),
-                borderColor: "#4CAF50",
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: 0,
+        document
+          .getElementById("start-button")
+          .addEventListener("click", () => {
+            const ctx = document.querySelector("canvas").getContext("2d");
+            const soundChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: Array(50).fill(""),
+                datasets: [
+                  {
+                    label: "Nivel de Sonido (dB)",
+                    data: Array(50).fill(0),
+                    borderColor: "#4CAF50",
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                  },
+                ],
               },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-                grid: {
-                  color: "#333",
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                      color: "#333",
+                    },
+                    ticks: {
+                      color: "#fff",
+                    },
+                  },
+                  x: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      display: false,
+                    },
+                  },
                 },
-                ticks: {
-                  color: "#fff",
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+                animation: {
+                  duration: 0,
                 },
               },
-              x: {
-                grid: {
-                  display: false,
-                },
-                ticks: {
-                  display: false,
-                },
-              },
-            },
-            plugins: {
-              legend: {
-                display: false,
-              },
-            },
-            animation: {
-              duration: 0,
-            },
-          },
-        });
+            });
 
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
-          const analyser = audioContext.createAnalyser();
-          analyser.fftSize = 256;
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+              const audioContext = new (window.AudioContext ||
+                window.webkitAudioContext)();
+              const analyser = audioContext.createAnalyser();
+              analyser.fftSize = 256;
+              const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-          navigator.mediaDevices
-            .getUserMedia({ audio: true })
-            .then((stream) => {
-              const source = audioContext.createMediaStreamSource(stream);
-              source.connect(analyser);
+              navigator.mediaDevices
+                .getUserMedia({ audio: true })
+                .then((stream) => {
+                  const source = audioContext.createMediaStreamSource(stream);
+                  source.connect(analyser);
 
-              function getDecibels() {
-                analyser.getByteFrequencyData(dataArray);
+                  function getDecibels() {
+                    analyser.getByteFrequencyData(dataArray);
 
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) {
-                  sum += dataArray[i];
-                }
-                const amplitude = sum / dataArray.length;
-                const decibels = 20 * Math.log10(amplitude || 1);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                      sum += dataArray[i];
+                    }
+                    const amplitude = sum / dataArray.length;
+                    const decibels = 20 * Math.log10(amplitude || 1);
 
-                // Actualizar el medidor
-                updateGauge(decibels);
+                    // Actualizar el medidor
+                    updateGauge(decibels);
 
-                // Actualizar el gráfico
-                updateChart(decibels);
+                    // Actualizar el gráfico
+                    updateChart(decibels);
 
-                requestAnimationFrame(getDecibels);
-              }
+                    requestAnimationFrame(getDecibels);
+                  }
 
-              function updateGauge(decibels) {
-                const gaugeFill = document.querySelector(".gauge-fill");
-                const gaugeText = document.querySelector(".gauge-cover");
-                const statusText = document.querySelector(".status");
-                const percentage = Math.min((decibels / 100) * 180, 180); // 180 grados máximo
+                  function updateGauge(decibels) {
+                    const gaugeFill = document.querySelector(".gauge-fill");
+                    const gaugeText = document.querySelector(".gauge-cover");
+                    const statusText = document.querySelector(".status");
+                    const percentage = Math.min((decibels / 100) * 180, 180); // 180 grados máximo
 
-                gaugeFill.style.setProperty(
-                  "--gauge-percentage",
-                  `${percentage}deg`
-                );
-                gaugeText.textContent = `${decibels.toFixed(1)} dB`;
+                    gaugeFill.style.setProperty(
+                      "--gauge-percentage",
+                      `${percentage}deg`
+                    );
+                    gaugeText.textContent = `${decibels.toFixed(1)} dB`;
 
-                let color;
-                let status;
-                if (decibels < 50) {
-                  color = "#4CAF50";
-                  status = "Normal";
-                } else if (decibels < 70) {
-                  color = "#FFC107";
-                  status = "Moderado";
-                } else if (decibels < 85) {
-                  color = "#FF9800";
-                  status = "Alto";
-                } else {
-                  color = "#F44336";
-                  status = "Peligroso";
-                }
+                    let color;
+                    let status;
+                    if (decibels < 50) {
+                      color = "#4CAF50";
+                      status = "Normal";
+                    } else if (decibels < 70) {
+                      color = "#FFC107";
+                      status = "Moderado";
+                    } else if (decibels < 85) {
+                      color = "#FF9800";
+                      status = "Alto";
+                    } else {
+                      color = "#F44336";
+                      status = "Peligroso";
+                    }
 
-                gaugeFill.style.setProperty("--gauge-color", color);
-                statusText.textContent = `Nivel de ruido: ${status}`;
-                statusText.style.color = color;
-              }
+                    gaugeFill.style.setProperty("--gauge-color", color);
+                    statusText.textContent = `Nivel de ruido: ${status}`;
+                    statusText.style.color = color;
+                  }
 
-              function updateChart(decibels) {
-                soundChart.data.datasets[0].data.shift();
-                soundChart.data.datasets[0].data.push(decibels);
+                  function updateChart(decibels) {
+                    soundChart.data.datasets[0].data.shift();
+                    soundChart.data.datasets[0].data.push(decibels);
 
-                // Actualizar el color de la línea según el nivel
-                let color;
-                if (decibels < 50) color = "#4CAF50";
-                else if (decibels < 70) color = "#FFC107";
-                else if (decibels < 85) color = "#FF9800";
-                else color = "#F44336";
+                    // Actualizar el color de la línea según el nivel
+                    let color;
+                    if (decibels < 50) color = "#4CAF50";
+                    else if (decibels < 70) color = "#FFC107";
+                    else if (decibels < 85) color = "#FF9800";
+                    else color = "#F44336";
 
-                soundChart.data.datasets[0].borderColor = color;
-                soundChart.update();
-              }
+                    soundChart.data.datasets[0].borderColor = color;
+                    soundChart.update();
+                  }
 
-              getDecibels();
-            })
-            .catch((error) => {
-              console.error("Error al acceder al micrófono:", error);
-              document.body.innerHTML = `
+                  getDecibels();
+                })
+                .catch((error) => {
+                  console.error("Error al acceder al micrófono:", error);
+                  document.body.innerHTML = `
                   <div style="color: red; text-align: center; margin-top: 20px;">
                       Error al acceder al micrófono. Por favor, permite el acceso al micrófono y recarga la página.
                   </div>
               `;
-            });
-        } else {
-          document.body.innerHTML = `
+                });
+            } else {
+              document.body.innerHTML = `
           <div style="color: red; text-align: center; margin-top: 20px;">
               Tu navegador no es compatible con la API de MediaDevices.
           </div>
       `;
-        }
+            }
+          });
       });
     </script>
     <footer>
