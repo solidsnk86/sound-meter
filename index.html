@@ -1,253 +1,295 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html>
+<head>
     <title>Medidor de Sonido</title>
-    <link rel="stylesheet" href="src/styles/style.css" />
-    <link
-      rel="shortcut icon"
-      href="https://imgs.search.brave.com/ZOHOES-2-JEHhEcPX2fAjtJOW03IRAWjyurj7XO3CtI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMtMDAuaWNvbmR1/Y2suY29tL2Fzc2V0/cy4wMC9qYXZhc2Ny/aXB0LWljb24tMjU2/eDI1Ni04c245OG8y/Mi5wbmc"
-      type="image/x-icon"
-    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-  </head>
-  <body>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .meter {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .gauge {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .gauge-body {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            border: 10px solid #333;
+        }
+
+        .gauge-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(
+                from 135deg,
+                var(--gauge-color) var(--gauge-percentage),
+                #333 var(--gauge-percentage)
+            );
+            border-radius: 50%;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .gauge-cover {
+            width: 75%;
+            height: 75%;
+            background: #1a1a1a;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .chart-container {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
     <div class="container">
-      <div class="meter">
-        <div class="gauge">
-          <div class="gauge-body">
-            <div class="gauge-fill"></div>
-            <div class="gauge-cover">0 dB</div>
-          </div>
+        <div class="meter">
+            <div class="gauge">
+                <div class="gauge-body">
+                    <div class="gauge-fill"></div>
+                    <div class="gauge-cover">0 dB</div>
+                </div>
+            </div>
+            <div class="status">Nivel de ruido: Normal</div>
         </div>
-        <div class="status">Nivel de ruido: Normal</div>
-        <button id="start-button">Iniciar Medidor de Sonido</button>
-        <button id="stop-button">Parar Medidor de Sonido</button>
-      </div>
 
-      <div class="chart-container">
-        <canvas></canvas>
-      </div>
+        <div class="chart-container">
+            <canvas id="soundChart"></canvas>
+        </div>
 
-      <div class="legend">
-        <div class="legend-item">
-          <div class="legend-color" style="background: #4caf50"></div>
-          <span>Normal</span>
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4CAF50"></div>
+                <span>Normal</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FFC107"></div>
+                <span>Moderado</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FF9800"></div>
+                <span>Alto</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #F44336"></div>
+                <span>Peligroso</span>
+            </div>
         </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #ffc107"></div>
-          <span>Moderado</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #ff9800"></div>
-          <span>Alto</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #f44336"></div>
-          <span>Peligroso</span>
-        </div>
-      </div>
     </div>
+
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        document
-          .getElementById("start-button")
-          .addEventListener("click", () => {
-            const ctx = document.querySelector("canvas").getContext("2d");
-            const soundChart = new Chart(ctx, {
-              type: "line",
-              data: {
-                labels: Array(50).fill(""),
-                datasets: [
-                  {
-                    label: "Nivel de Sonido (dB)",
+        // Configuración del gráfico
+        const ctx = document.getElementById('soundChart').getContext('2d');
+        const soundChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(50).fill(''),
+                datasets: [{
+                    label: 'Nivel de Sonido (dB)',
                     data: Array(50).fill(0),
-                    borderColor: "#4CAF50",
+                    borderColor: '#4CAF50',
                     tension: 0.4,
                     borderWidth: 2,
-                    pointRadius: 0,
-                  },
-                ],
-              },
-              options: {
+                    pointRadius: 0
+                }]
+            },
+            options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 120,
-                    grid: {
-                      color: "#333",
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: '#333'
+                        },
+                        ticks: {
+                            color: '#fff'
+                        }
                     },
-                    ticks: {
-                      color: "#fff",
-                    },
-                  },
-                  x: {
-                    grid: {
-                      display: false,
-                    },
-                    ticks: {
-                      display: false,
-                    },
-                  },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        }
+                    }
                 },
                 plugins: {
-                  legend: {
-                    display: false,
-                  },
+                    legend: {
+                        display: false
+                    }
                 },
                 animation: {
-                  duration: 0,
-                },
-              },
-            });
+                    duration: 0
+                }
+            }
+        });
 
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-              const audioContext = new (window.AudioContext ||
-                window.webkitAudioContext)();
-              const analyser = audioContext.createAnalyser();
-              analyser.fftSize = 256;
-              const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-              navigator.mediaDevices
-                .getUserMedia({ audio: true })
-                .then((stream) => {
-                  const source = audioContext.createMediaStreamSource(stream);
-                  source.connect(analyser);
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
 
-                  function getDecibels() {
-                    analyser.getByteFrecuencyData(dataArray);
+                    function getDecibels() {
+                        analyser.getByteFrequencyData(dataArray);
+                        
+                        // Cálculo mejorado de decibelios
+                        let sum = 0;
+                        let count = 0;
+                        for (let i = 0; i < dataArray.length; i++) {
+                            if (dataArray[i] > 0) {
+                                sum += Math.pow(dataArray[i] / 255, 2);
+                                count++;
+                            }
+                        }
+                        
+                        const rms = Math.sqrt(sum / (count || 1));
+                        // Convertir a decibelios con un valor de referencia más apropiado
+                        const decibels = Math.max(0, Math.min(100, 20 * Math.log10(rms * 100)));
 
-                    let sum = 0;
-for (let i = 0; i < dataArray.length; i++) {
-  const value = dataArray[i]; // Normalizar entre -1 y 1
-  sum += value * value;
-}
-const rms = (sum / dataArray.length);
-const decibels = 20 * Math.log10(rms || 0.0001); // Evitar log(0)
-                    // Actualizar el medidor
-                    updateGauge(decibels);
+                        // Actualizar el medidor
+                        updateGauge(decibels);
+                        
+                        // Actualizar el gráfico
+                        updateChart(decibels);
 
-                    // Actualizar el gráfico
-                    updateChart(decibels);
-
-                    requestAnimationFrame(getDecibels);
-                  }
-
-                  function updateGauge(decibels) {
-                    const gaugeFill = document.querySelector(".gauge-fill");
-                    const gaugeText = document.querySelector(".gauge-cover");
-                    const statusText = document.querySelector(".status");
-                    const percentage = Math.min((decibels / 100) * 180, 180); // 180 grados máximo
-
-                    gaugeFill.style.setProperty(
-                      "--gauge-percentage",
-                      `${percentage}deg`
-                    );
-                    gaugeText.textContent = `${decibels.toFixed(1)} dB`;
-
-                    let color;
-                    let status;
-                    if (decibels < 50) {
-                      color = "#4CAF50";
-                      status = "Normal";
-                    } else if (decibels < 70) {
-                      color = "#FFC107";
-                      status = "Moderado";
-                    } else if (decibels < 85) {
-                      color = "#FF9800";
-                      status = "Alto";
-                    } else {
-                      color = "#F44336";
-                      status = "Peligroso";
+                        requestAnimationFrame(getDecibels);
                     }
 
-                    gaugeFill.style.setProperty("--gauge-color", color);
-                    statusText.textContent = `Nivel de ruido: ${status}`;
-                    statusText.style.color = color;
-                  }
+                    function updateGauge(decibels) {
+                        const gaugeFill = document.querySelector('.gauge-fill');
+                        const gaugeText = document.querySelector('.gauge-cover');
+                        const statusText = document.querySelector('.status');
+                        const percentage = Math.min(decibels / 100 * 180, 180); // 180 grados máximo
 
-                  function updateChart(decibels) {
-                    soundChart.data.datasets[0].data.shift();
-                    soundChart.data.datasets[0].data.push(decibels);
+                        gaugeFill.style.setProperty('--gauge-percentage', `${percentage}deg`);
+                        gaugeText.textContent = `${decibels.toFixed(1)} dB`;
 
-                    // Actualizar el color de la línea según el nivel
-                    let color;
-                    if (decibels < 50) color = "#4CAF50";
-                    else if (decibels < 70) color = "#FFC107";
-                    else if (decibels < 85) color = "#FF9800";
-                    else color = "#F44336";
+                        let color;
+                        let status;
+                        if (decibels < 50) {
+                            color = '#4CAF50';
+                            status = 'Normal';
+                        } else if (decibels < 70) {
+                            color = '#FFC107';
+                            status = 'Moderado';
+                        } else if (decibels < 85) {
+                            color = '#FF9800';
+                            status = 'Alto';
+                        } else {
+                            color = '#F44336';
+                            status = 'Peligroso';
+                        }
 
-                    soundChart.data.datasets[0].borderColor = color;
-                    soundChart.update();
-                  }
+                        gaugeFill.style.setProperty('--gauge-color', color);
+                        statusText.textContent = `Nivel de ruido: ${status}`;
+                        statusText.style.color = color;
+                    }
 
-                  getDecibels();
+                    function updateChart(decibels) {
+                        soundChart.data.datasets[0].data.shift();
+                        soundChart.data.datasets[0].data.push(decibels);
+                        
+                        // Actualizar el color de la línea según el nivel
+                        let color;
+                        if (decibels < 50) color = '#4CAF50';
+                        else if (decibels < 70) color = '#FFC107';
+                        else if (decibels < 85) color = '#FF9800';
+                        else color = '#F44336';
+                        
+                        soundChart.data.datasets[0].borderColor = color;
+                        soundChart.update();
+                    }
+
+                    getDecibels();
                 })
-                .catch((error) => {
-                  console.error("Error al acceder al micrófono:", error);
-                  document.body.innerHTML = `
-                  <div style="color: red; text-align: center; margin-top: 20px;">
-                      Error al acceder al micrófono. Por favor, permite el acceso al micrófono y recarga la página.
-                  </div>
-              `;
+                .catch(error => {
+                    console.error("Error al acceder al micrófono:", error);
+                    document.body.innerHTML = `
+                        <div style="color: red; text-align: center; margin-top: 20px;">
+                            Error al acceder al micrófono. Por favor, permite el acceso al micrófono y recarga la página.
+                        </div>
+                    `;
                 });
-            } else {
-              document.body.innerHTML = `
-          <div style="color: red; text-align: center; margin-top: 20px;">
-              Tu navegador no es compatible con la API de MediaDevices.
-          </div>
-      `;
-            }
-          });
-
-        // Conexión al server de node.js para poder grabar el sonido y guardarlo a mp3
-        let mediaRecorder;
-        let audioChunks = [];
-
-        document.getElementById("startRecord").onclick = async () => {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          mediaRecorder = new MediaRecorder(stream);
-
-          mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
-          };
-
-          mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-            const formData = new FormData();
-            formData.append("audio", audioBlob, "nuevo_audio.webm");
-
-            await fetch("http://localhost:3000/upload", {
-              method: "POST",
-              body: formData,
-            });
-
-            audioChunks = [];
-          };
-
-          mediaRecorder.start();
-          document.getElementById("stopRecord").disabled = false;
-        };
-
-        document.getElementById("stopRecord").onclick = () => {
-          mediaRecorder.stop();
-          document.getElementById("stopRecord").disabled = true;
-        };
-      });
-      document.getElementById("stop-button").addEventListener("click", () => {
-        location.reload();
-      });
+        } else {
+            document.body.innerHTML = `
+                <div style="color: red; text-align: center; margin-top: 20px;">
+                    Tu navegador no es compatible con la API de MediaDevices.
+                </div>
+            `;
+        }
     </script>
-    <!-- <button id="startRecord">Iniciar grabación</button>
-    <button id="stopRecord" disabled>Detener grabación</button> -->
-    <div id="info"></div>
-    <footer>
-      <a href="https://github.com/solidsnk86">Hecho con 💖 por SolidSnk86</a>
-    </footer>
-  </body>
+</body>
 </html>
