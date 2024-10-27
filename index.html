@@ -124,6 +124,7 @@
                     for (let i = 0; i < dataArray.length; i++) {
                       sum += dataArray[i];
                     }
+
                     const amplitude = sum / dataArray.length;
                     const decibels = 20 * Math.log10(amplitude || 1);
 
@@ -203,42 +204,42 @@
             }
           });
 
-        // Conexión al server de node.js para poder grabar el sonido y guardarlo a mp3
-        let mediaRecorder;
-        let audioChunks = [];
+        // // Conexión al server de node.js para poder grabar el sonido y guardarlo a mp3
+        // let mediaRecorder;
+        // let audioChunks = [];
 
-        document.getElementById("startRecord").onclick = async () => {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          mediaRecorder = new MediaRecorder(stream);
+        // document.getElementById("startRecord").onclick = async () => {
+        //   const stream = await navigator.mediaDevices.getUserMedia({
+        //     audio: true,
+        //   });
+        //   mediaRecorder = new MediaRecorder(stream);
 
-          mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
-          };
+        //   mediaRecorder.ondataavailable = (event) => {
+        //     audioChunks.push(event.data);
+        //   };
 
-          mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-            const formData = new FormData();
-            formData.append("audio", audioBlob, "nuevo_audio.webm");
+        //   mediaRecorder.onstop = async () => {
+        //     const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        //     const formData = new FormData();
+        //     formData.append("audio", audioBlob, "nuevo_audio.webm");
 
-            await fetch("http://localhost:3000/upload", {
-              mode: "cors",
-              method: "POST",
-              body: formData,
-            });
+        //     await fetch("http://localhost:3000/upload", {
+        //       mode: "cors",
+        //       method: "POST",
+        //       body: formData,
+        //     });
 
-            audioChunks = [];
-          };
+        //     audioChunks = [];
+        //   };
 
-          mediaRecorder.start();
-          document.getElementById("stopRecord").disabled = false;
-        };
+        //   mediaRecorder.start();
+        //   document.getElementById("stopRecord").disabled = false;
+        // };
 
-        document.getElementById("stopRecord").onclick = () => {
-          mediaRecorder.stop();
-          document.getElementById("stopRecord").disabled = true;
-        };
+        // document.getElementById("stopRecord").onclick = () => {
+        //   mediaRecorder.stop();
+        //   document.getElementById("stopRecord").disabled = true;
+        // };
       });
       document.getElementById("stop-button").addEventListener("click", () => {
         location.reload();
